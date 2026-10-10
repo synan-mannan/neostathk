@@ -1,9 +1,4 @@
-/**
- * Reusable HTTP API client for communicating with the backend REST API.
- * Reads base URL from NEXT_PUBLIC_API_URL and provides structured error handling.
- */
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export class ApiError extends Error {
   public status: number;
@@ -11,7 +6,7 @@ export class ApiError extends Error {
 
   constructor(message: string, status: number, data?: unknown) {
     super(message);
-    this.name = 'ApiError';
+    this.name = "ApiError";
     this.status = status;
     this.data = data;
   }
@@ -22,13 +17,13 @@ export class ApiError extends Error {
  */
 export async function apiFetch<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
-  const url = `${API_BASE_URL.replace(/\/+$/, '')}/${endpoint.replace(/^\/+/, '')}`;
+  const url = `${API_BASE_URL.replace(/\/+$/, "")}/${endpoint.replace(/^\/+/, "")}`;
 
   const defaultHeaders: HeadersInit = {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
+    "Content-Type": "application/json",
+    Accept: "application/json",
   };
 
   try {
@@ -59,7 +54,10 @@ export async function apiFetch<T>(
     if (err instanceof ApiError) {
       throw err;
     }
-    const message = err instanceof Error ? err.message : 'Network error or backend unreachable';
+    const message =
+      err instanceof Error
+        ? err.message
+        : "Network error or backend unreachable";
     throw new ApiError(message, 0);
   }
 }
