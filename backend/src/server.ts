@@ -2,9 +2,13 @@ import http from "http";
 import { createApp } from "./app.js";
 import { env } from "./config/env.js";
 import { pool } from "./db/pool.js";
+import { initSocketIO } from "./sockets/index.js";
 
 const app = createApp();
 const server = http.createServer(app);
+
+// Initialize Socket.IO with server
+initSocketIO(server);
 
 server.listen(env.PORT, () => {
   console.log(`NeoStats Backend API running on http://localhost:${env.PORT}`);
@@ -32,7 +36,6 @@ async function gracefulShutdown(signal: string) {
     }
   });
 
-  // Force close after 10 seconds if graceful shutdown takes too long
   setTimeout(() => {
     console.error(" Forcing server shutdown after timeout.");
     process.exit(1);

@@ -2,9 +2,9 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
 
 export class ApiError extends Error {
   public status: number;
-  public data?: unknown;
+  public data?: any;
 
-  constructor(message: string, status: number, data?: unknown) {
+  constructor(message: string, status: number, data?: any) {
     super(message);
     this.name = "ApiError";
     this.status = status;
@@ -13,11 +13,11 @@ export class ApiError extends Error {
 }
 
 /**
- * Perform a typed HTTP fetch request to the backend API.
+ * Perform a typed HTTP fetch request to the backend API with credentials included.
  */
 export async function apiFetch<T>(
   endpoint: string,
-  options: RequestInit = {},
+  options: RequestInit = {}
 ): Promise<T> {
   const url = `${API_BASE_URL.replace(/\/+$/, "")}/${endpoint.replace(/^\/+/, "")}`;
 
@@ -29,13 +29,14 @@ export async function apiFetch<T>(
   try {
     const response = await fetch(url, {
       ...options,
+      credentials: "include", // Essential for HttpOnly session cookies
       headers: {
         ...defaultHeaders,
         ...options.headers,
       },
     });
 
-    let data: unknown;
+    let data: any;
     try {
       data = await response.json();
     } catch {
@@ -44,8 +45,7 @@ export async function apiFetch<T>(
 
     if (!response.ok) {
       const errorMessage =
-        (data as { message?: string })?.message ||
-        `HTTP Error ${response.status}: ${response.statusText}`;
+        data?.message || `HTTP Error ${response.status}: ${response.statusText}`;
       throw new ApiError(errorMessage, response.status, data);
     }
 
@@ -55,9 +55,7 @@ export async function apiFetch<T>(
       throw err;
     }
     const message =
-      err instanceof Error
-        ? err.message
-        : "Network error or backend unreachable";
+      err instanceof Error ? err.message : "Network error or backend unreachable";
     throw new ApiError(message, 0);
   }
 }

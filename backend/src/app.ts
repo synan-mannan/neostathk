@@ -1,5 +1,6 @@
 import express, { Application, Request, Response } from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import { env } from './config/env.js';
 import { apiRouter } from './routes/index.js';
 import { errorHandler } from './middleware/error.middleware.js';
@@ -7,7 +8,7 @@ import { errorHandler } from './middleware/error.middleware.js';
 export function createApp(): Application {
   const app = express();
 
-  // CORS Configuration
+  // CORS Configuration supporting credentials
   app.use(
     cors({
       origin: env.FRONTEND_URL,
@@ -17,7 +18,8 @@ export function createApp(): Application {
     })
   );
 
-  // Body Parsing Middleware
+  // Cookie and Body Parsing Middleware
+  app.use(cookieParser());
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
