@@ -7,9 +7,19 @@ import { useAuth } from "@/lib/auth";
 import { apiFetch, ApiError } from "@/lib/api";
 import { getSocket } from "@/lib/socket";
 import {
+  Card,
+  Button,
+  Input,
+  Select,
+  Badge,
+  Modal,
+  Alert,
+  EmptyState,
+  Skeleton,
+} from "@/components/ui";
+import {
   CheckSquare,
   Plus,
-  Filter,
   Search,
   AlertTriangle,
   ArrowLeft,
@@ -33,6 +43,7 @@ interface Task {
   version: number;
   created_at: string;
   updated_at: string;
+  isNew?: boolean;
 }
 
 interface Member {
@@ -114,23 +125,25 @@ export default function ProjectTasksPage() {
       const socket = getSocket();
       socket.emit("subscribe:project", projectId);
 
-      // Real-time Socket Event Handlers
+      // Real-time Socket Event Handlers with brief highlight indicator
       const onTaskCreated = (newTask: Task) => {
         setTasks((prev) => {
           if (prev.some((t) => t.id === newTask.id)) return prev;
-          return [newTask, ...prev];
+          return [{ ...newTask, isNew: true }, ...prev];
         });
       };
 
       const onTaskUpdated = (updatedTask: Task) => {
-        setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
+        setTasks((prev) =>
+          prev.map((t) => (t.id === updatedTask.id ? { ...updatedTask, isNew: true } : t))
+        );
       };
 
       const onTaskStatusChanged = (updatedTask: Task) => {
         setTasks((prev) =>
           prev.map((t) =>
             t.id === updatedTask.id
-              ? { ...t, status: updatedTask.status, version: updatedTask.version }
+              ? { ...t, status: updatedTask.status, version: updatedTask.version, isNew: true }
               : t
           )
         );
@@ -145,6 +158,7 @@ export default function ProjectTasksPage() {
                   assignee_id: updatedTask.assignee_id,
                   assignee_name: updatedTask.assignee_name,
                   version: updatedTask.version,
+                  isNew: true,
                 }
               : t
           )
@@ -207,12 +221,11 @@ export default function ProjectTasksPage() {
         method: "PATCH",
         body: JSON.stringify({
           status: newStatus,
-          version: task.version, // Pass current client version for optimistic check
+          version: task.version, // Pass current client version for optimistic concurrency
         }),
       });
     } catch (err: any) {
       if (err.status === 409) {
-        // Optimistic concurrency collision! Show conflict modal
         setConflictModal({
           show: true,
           taskId: task.id,
@@ -235,11 +248,11 @@ export default function ProjectTasksPage() {
     }
   };
 
-  const priorityBadge: Record<Task["priority"], string> = {
-    LOW: "bg-slate-100 text-slate-700 border-slate-200",
-    MEDIUM: "bg-blue-50 text-blue-700 border-blue-200",
-    HIGH: "bg-amber-50 text-amber-700 border-amber-200",
-    URGENT: "bg-rose-50 text-rose-700 border-rose-200",
+  const priorityBadge: Record<Task["priority"], "muted" | "highlight" | "warning" | "danger"> = {
+    LOW: "muted",
+    MEDIUM: "highlight",
+    HIGH: "warning",
+    URGENT: "danger",
   };
 
   return (
@@ -250,81 +263,87 @@ export default function ProjectTasksPage() {
           <div className="flex items-center gap-2">
             <Link
               href={`/projects/${projectId}`}
-              className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-highlight hover:text-highlight/80"
             >
               <ArrowLeft className="h-3.5 w-3.5" /> Back to Project Overview
             </Link>
           </div>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight text-text">
             Project Task Board
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted">
             Real-time collaborative updates enabled • Optimistic concurrency protected
           </p>
         </div>
 
         {canManageTasks && (
-          <button
+          <Button
             onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors"
+            variant="primary"
           >
             <Plus className="h-4 w-4" />
             Add Task
-          </button>
+          </Button>
         )}
       </div>
 
       {/* Filter and Search Bar */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-muted" />
           <input
             type="text"
             placeholder="Search tasks..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-md border border-slate-300 pl-9 pr-3 py-2 text-sm shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            className="w-full rounded-xl bg-card border border-border pl-10 pr-3.5 py-2 text-sm text-text placeholder:text-muted focus:border-highlight focus:outline-none focus:ring-2 focus:ring-highlight/60 transition-colors"
           />
         </div>
 
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-        >
-          <option value="">All Statuses</option>
-          <option value="TODO">To Do</option>
-          <option value="IN_PROGRESS">In Progress</option>
-          <option value="IN_REVIEW">In Review</option>
-          <option value="DONE">Done</option>
-        </select>
+        <div className="w-full sm:w-44">
+          <Select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="">All Statuses</option>
+            <option value="TODO">To Do</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="IN_REVIEW">In Review</option>
+            <option value="DONE">Done</option>
+          </Select>
+        </div>
 
-        <select
-          value={priorityFilter}
-          onChange={(e) => setPriorityFilter(e.target.value)}
-          className="rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-        >
-          <option value="">All Priorities</option>
-          <option value="LOW">Low</option>
-          <option value="MEDIUM">Medium</option>
-          <option value="HIGH">High</option>
-          <option value="URGENT">Urgent</option>
-        </select>
+        <div className="w-full sm:w-44">
+          <Select
+            value={priorityFilter}
+            onChange={(e) => setPriorityFilter(e.target.value)}
+          >
+            <option value="">All Priorities</option>
+            <option value="LOW">Low</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HIGH">High</option>
+            <option value="URGENT">Urgent</option>
+          </Select>
+        </div>
       </div>
 
       {/* Task List */}
       {loading ? (
-        <div className="flex min-h-[30vh] items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-r-transparent"></div>
+        <div className="space-y-3">
+          <Skeleton className="h-20 rounded-xl" />
+          <Skeleton className="h-20 rounded-xl" />
+          <Skeleton className="h-20 rounded-xl" />
         </div>
       ) : tasks.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 p-12 text-center bg-white">
-          <CheckSquare className="mx-auto h-10 w-10 text-slate-400" />
-          <h3 className="mt-3 text-base font-semibold text-slate-900">No tasks found</h3>
-          <p className="mt-1 text-sm text-slate-500">
-            {canManageTasks ? "Get started by adding a task to this project." : "No tasks match your filters."}
-          </p>
-        </div>
+        <EmptyState
+          icon={CheckSquare}
+          title="No tasks found"
+          description={
+            canManageTasks
+              ? "Get started by adding a task to this project board."
+              : "No tasks match your selected filters."
+          }
+        />
       ) : (
         <div className="space-y-3">
           {tasks.map((task) => {
@@ -332,54 +351,52 @@ export default function ProjectTasksPage() {
             const canModifyThisTask = canManageTasks || isUserAssignee;
 
             return (
-              <div
+              <Card
                 key={task.id}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:border-indigo-200 transition-all"
+                className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 hover:border-highlight/40 transition-all ${
+                  task.isNew ? "border-highlight shadow-[0_0_12px_rgba(134,239,172,0.15)]" : ""
+                }`}
               >
                 <div className="space-y-1.5 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span
-                      className={`text-[11px] font-semibold px-2 py-0.5 rounded border uppercase ${
-                        priorityBadge[task.priority]
-                      }`}
-                    >
+                    <Badge variant={priorityBadge[task.priority]}>
                       {task.priority}
-                    </span>
-                    <span className="text-[11px] text-slate-400">v{task.version}</span>
-                    <h3 className="text-base font-bold text-slate-900 hover:text-indigo-600">
+                    </Badge>
+                    <span className="text-[11px] font-mono text-muted">v{task.version}</span>
+                    <h3 className="text-base font-bold text-text hover:text-highlight transition-colors">
                       <Link href={`/tasks/${task.id}`}>{task.title}</Link>
                     </h3>
                   </div>
 
                   {task.description && (
-                    <p className="text-xs text-slate-600 line-clamp-2">{task.description}</p>
+                    <p className="text-xs text-muted line-clamp-2 leading-relaxed">{task.description}</p>
                   )}
 
-                  <div className="flex flex-wrap items-center gap-4 text-xs text-slate-500 pt-1">
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-muted pt-1">
                     <span className="flex items-center gap-1">
-                      <UserIcon className="h-3.5 w-3.5 text-slate-400" />
-                      {task.assignee_name ? `Assigned to ${task.assignee_name}` : "Unassigned"}
+                      <UserIcon className="h-3.5 w-3.5 text-highlight/70" />
+                      {task.assignee_name ? `Assigned: ${task.assignee_name}` : "Unassigned"}
                     </span>
                     <span className="flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5 text-slate-400" />
+                      <Clock className="h-3.5 w-3.5 text-muted" />
                       {new Date(task.updated_at).toLocaleDateString()}
                     </span>
                     <Link
                       href={`/tasks/${task.id}`}
-                      className="inline-flex items-center gap-1 text-indigo-600 hover:underline font-medium"
+                      className="inline-flex items-center gap-1 text-highlight hover:underline font-medium"
                     >
                       <MessageSquare className="h-3.5 w-3.5" /> Comments & Details
                     </Link>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 shrink-0">
+                <div className="flex items-center gap-2.5 shrink-0">
                   {/* Status Dropdown */}
                   <select
                     disabled={!canModifyThisTask || isViewer}
                     value={task.status}
                     onChange={(e) => handleStatusChange(task, e.target.value as Task["status"])}
-                    className="rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 shadow-sm focus:border-indigo-500 focus:outline-none disabled:opacity-50"
+                    className="rounded-lg bg-card border border-border px-3 py-1.5 text-xs font-semibold text-text shadow-sm focus:border-highlight focus:outline-none disabled:opacity-50 transition-colors"
                   >
                     <option value="TODO">To Do</option>
                     <option value="IN_PROGRESS">In Progress</option>
@@ -388,163 +405,149 @@ export default function ProjectTasksPage() {
                   </select>
 
                   {canManageTasks && (
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="icon"
                       onClick={() => handleDeleteTask(task.id)}
                       title="Delete task"
-                      className="p-1.5 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                      className="text-muted hover:text-danger"
                     >
                       <Trash2 className="h-4 w-4" />
-                    </button>
+                    </Button>
                   )}
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>
       )}
 
       {/* 409 Conflict Modal */}
-      {conflictModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl border border-rose-200">
-            <div className="flex items-start gap-3">
-              <div className="p-2 rounded-full bg-rose-100 text-rose-600">
-                <AlertTriangle className="h-6 w-6" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-bold text-slate-900">
-                  Version Conflict (HTTP 409)
-                </h3>
-                <p className="mt-1 text-sm text-slate-600">
-                  {conflictModal.message}
-                </p>
+      <Modal
+        isOpen={!!conflictModal}
+        onClose={() => setConflictModal(null)}
+        title="Version Conflict (HTTP 409)"
+        description="Concurrent update detected. Another user modified this task in the background."
+      >
+        <div className="space-y-4">
+          <Alert variant="warning">
+            {conflictModal?.message}
+          </Alert>
+
+          {conflictModal?.latestTask && (
+            <div className="rounded-xl bg-card border border-border p-4 text-xs space-y-2">
+              <p className="font-semibold text-highlight">Latest values from server:</p>
+              <div className="grid grid-cols-2 gap-2 text-muted">
+                <div><strong>Title:</strong> {conflictModal.latestTask.title}</div>
+                <div><strong>Status:</strong> {conflictModal.latestTask.status}</div>
+                <div><strong>Priority:</strong> {conflictModal.latestTask.priority}</div>
+                <div><strong>Version:</strong> v{conflictModal.latestTask.version}</div>
               </div>
             </div>
+          )}
 
-            {conflictModal.latestTask && (
-              <div className="mt-4 rounded-lg bg-slate-50 p-4 border border-slate-200 text-xs space-y-2">
-                <p className="font-semibold text-slate-800">Latest server record:</p>
-                <div className="grid grid-cols-2 gap-2 text-slate-600">
-                  <div><strong>Title:</strong> {conflictModal.latestTask.title}</div>
-                  <div><strong>Status:</strong> {conflictModal.latestTask.status}</div>
-                  <div><strong>Priority:</strong> {conflictModal.latestTask.priority}</div>
-                  <div><strong>Version:</strong> v{conflictModal.latestTask.version}</div>
-                </div>
-              </div>
-            )}
-
-            <div className="mt-6 flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setConflictModal(null);
-                  fetchProjectAndTasks();
-                }}
-                className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700"
-              >
-                <RefreshCw className="h-4 w-4" />
-                Reload Latest Version
-              </button>
-            </div>
+          <div className="flex justify-end pt-2">
+            <Button
+              variant="primary"
+              onClick={() => {
+                setConflictModal(null);
+                fetchProjectAndTasks();
+              }}
+            >
+              <RefreshCw className="h-4 w-4" />
+              Reload Latest Task
+            </Button>
           </div>
         </div>
-      )}
+      </Modal>
 
       {/* Create Task Modal */}
-      {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl border border-slate-200">
-            <h3 className="text-lg font-bold text-slate-900">Create New Task</h3>
+      <Modal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        title="Create New Task"
+        description="Add a task with priority and optional member assignment."
+      >
+        {createError && (
+          <Alert variant="danger" className="mb-4">
+            {createError}
+          </Alert>
+        )}
 
-            {createError && (
-              <div className="mt-3 rounded-md bg-rose-50 p-2.5 text-xs text-rose-700 border border-rose-200">
-                {createError}
-              </div>
-            )}
-
-            <form onSubmit={handleCreateTask} className="mt-4 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Task title..."
-                  value={newTaskTitle}
-                  onChange={(e) => setNewTaskTitle(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase">
-                  Description
-                </label>
-                <textarea
-                  rows={2}
-                  placeholder="Task details..."
-                  value={newTaskDesc}
-                  onChange={(e) => setNewTaskDesc(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase">
-                    Priority
-                  </label>
-                  <select
-                    value={newTaskPriority}
-                    onChange={(e) => setNewTaskPriority(e.target.value as Task["priority"])}
-                    className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                  >
-                    <option value="LOW">Low</option>
-                    <option value="MEDIUM">Medium</option>
-                    <option value="HIGH">High</option>
-                    <option value="URGENT">Urgent</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase">
-                    Assignee
-                  </label>
-                  <select
-                    value={newTaskAssignee}
-                    onChange={(e) => setNewTaskAssignee(e.target.value)}
-                    className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                  >
-                    <option value="">Unassigned</option>
-                    {members.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.name} ({m.project_role})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateModal(false)}
-                  className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 shadow-sm"
-                >
-                  Create Task
-                </button>
-              </div>
-            </form>
+        <form onSubmit={handleCreateTask} className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-muted uppercase tracking-wider mb-1">
+              Title
+            </label>
+            <Input
+              required
+              placeholder="e.g. Implement WebSocket Auth"
+              value={newTaskTitle}
+              onChange={(e) => setNewTaskTitle(e.target.value)}
+            />
           </div>
-        </div>
-      )}
+
+          <div>
+            <label className="block text-xs font-semibold text-muted uppercase tracking-wider mb-1">
+              Description
+            </label>
+            <textarea
+              rows={2}
+              placeholder="Task details and deliverables..."
+              value={newTaskDesc}
+              onChange={(e) => setNewTaskDesc(e.target.value)}
+              className="w-full rounded-xl bg-card border border-border px-3.5 py-2 text-sm text-text placeholder:text-muted focus:border-highlight focus:outline-none focus:ring-2 focus:ring-highlight/60 transition-colors"
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-muted uppercase tracking-wider mb-1">
+                Priority
+              </label>
+              <Select
+                value={newTaskPriority}
+                onChange={(e) => setNewTaskPriority(e.target.value as Task["priority"])}
+              >
+                <option value="LOW">Low</option>
+                <option value="MEDIUM">Medium</option>
+                <option value="HIGH">High</option>
+                <option value="URGENT">Urgent</option>
+              </Select>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-muted uppercase tracking-wider mb-1">
+                Assignee
+              </label>
+              <Select
+                value={newTaskAssignee}
+                onChange={(e) => setNewTaskAssignee(e.target.value)}
+              >
+                <option value="">Unassigned</option>
+                {members.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name} ({m.project_role})
+                  </option>
+                ))}
+              </Select>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-2 border-t border-border">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowCreateModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary">
+              Create Task
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

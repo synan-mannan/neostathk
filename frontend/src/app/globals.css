@@ -3,12 +3,42 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 15, 23, 42;
-  --background-rgb: 248, 250, 252;
+  --bg: 7 26 18;            /* #071A12 app background */
+  --card: 16 37 26;         /* #10251A cards, panels, modals, sidebar */
+  --primary: 22 163 74;     /* #16A34A buttons, active states, links */
+  --highlight: 134 239 172; /* #86EFAC accents, badges, focus rings, glow */
+  --text: 243 247 244;      /* #F3F7F4 main text */
+  --muted: 163 181 168;     /* #A3B5A8 secondary text, placeholders */
+  --border: 36 61 46;       /* #243D2E borders, dividers */
+  --danger: 248 113 113;
+  --warning: 251 191 36;
+}
+
+html {
+  color-scheme: dark;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background-color: rgb(var(--background-rgb));
+  color: rgb(var(--text));
+  background-color: rgb(var(--bg));
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* Subtle custom scrollbar matching dark emerald aesthetic */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgb(var(--bg));
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--border));
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--muted) / 0.5);
 }

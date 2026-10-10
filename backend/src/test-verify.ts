@@ -2,7 +2,7 @@ import { pool } from './db/pool.js';
 import bcrypt from 'bcrypt';
 
 async function runTests() {
-  console.log('🧪 Starting NeoStats Backend Verification Tests...\n');
+  console.log(' Starting NeoStats Backend Verification Tests...\n');
 
   try {
     // 1. Verify DB Schema and Seed Users
@@ -13,7 +13,7 @@ async function runTests() {
     if (!['ADMIN', 'PROJECT_MANAGER', 'TEAM_MEMBER', 'VIEWER'].every(r => roles.includes(r))) {
       throw new Error('Missing expected roles in seeded users');
     }
-    console.log('   ✅ All 4 roles exist in database.');
+    console.log('  All 4 roles exist in database.');
 
     // 2. Test Optimistic Concurrency Control (HTTP 409 simulation)
     console.log('\n2. Testing Optimistic Concurrency Logic...');
@@ -44,7 +44,7 @@ async function runTests() {
     );
 
     if (update2.rows.length === 0) {
-      console.log('   ✅ User B stale update with version=1 was REJECTED atomically (Optimistic locking 409 verified!)');
+      console.log('    User B stale update with version=1 was REJECTED atomically (Optimistic locking 409 verified!)');
     } else {
       throw new Error('Optimistic concurrency failed: stale version update succeeded');
     }
@@ -53,10 +53,10 @@ async function runTests() {
     await pool.query('DELETE FROM tasks WHERE id = $1', [testTask.id]);
     console.log('   Cleaned up test task.');
 
-    console.log('\n🎉 ALL BACKEND VERIFICATION TESTS PASSED SUCCESSFULLY!\n');
+    console.log('\n ALL BACKEND VERIFICATION TESTS PASSED SUCCESSFULLY!\n');
     process.exit(0);
   } catch (err) {
-    console.error('❌ Test failed:', err);
+    console.error(' Test failed:', err);
     process.exit(1);
   } finally {
     await pool.end();
