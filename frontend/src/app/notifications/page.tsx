@@ -83,7 +83,7 @@ export default function NotificationsPage() {
   if (authLoading || loading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-r-transparent"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-r-transparent"></div>
       </div>
     );
   }
@@ -94,11 +94,11 @@ export default function NotificationsPage() {
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <Bell className="h-6 w-6 text-indigo-600" />
+          <h1 className="text-2xl font-bold tracking-tight text-text flex items-center gap-2">
+            <Bell className="h-6 w-6 text-highlight" />
             Notifications
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted">
             Real-time notifications for task assignments, mentions, and updates.
           </p>
         </div>
@@ -106,41 +106,41 @@ export default function NotificationsPage() {
         {unreadCount > 0 && (
           <button
             onClick={markAllAsRead}
-            className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 py-2 text-xs font-semibold text-text shadow-sm hover:bg-border/40"
           >
-            <CheckCheck className="h-4 w-4 text-emerald-600" />
+            <CheckCheck className="h-4 w-4 text-highlight" />
             Mark all as read
           </button>
         )}
       </div>
 
       {notifications.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 p-12 text-center bg-white">
-          <Bell className="mx-auto h-10 w-10 text-slate-400" />
-          <h3 className="mt-3 text-base font-semibold text-slate-900">All caught up!</h3>
-          <p className="mt-1 text-sm text-slate-500">
+        <div className="rounded-xl border border-dashed border-border p-12 text-center bg-card">
+          <Bell className="mx-auto h-10 w-10 text-muted" />
+          <h3 className="mt-3 text-base font-semibold text-text">All caught up!</h3>
+          <p className="mt-1 text-sm text-muted">
             You don't have any notifications right now.
           </p>
         </div>
       ) : (
-        <div className="rounded-xl border border-slate-200 bg-white shadow-sm divide-y divide-slate-100">
+        <div className="rounded-xl border border-border bg-card shadow-sm divide-y divide-border">
           {notifications.map((notif) => (
             <div
               key={notif.id}
               className={`p-4 sm:px-6 flex items-start justify-between gap-4 transition-colors ${
-                notif.is_read ? "bg-white" : "bg-indigo-50/30"
+                notif.is_read ? "bg-card" : "bg-highlight/5"
               }`}
             >
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span
                     className={`h-2 w-2 rounded-full ${
-                      notif.is_read ? "bg-slate-300" : "bg-indigo-600"
+                      notif.is_read ? "bg-muted/50" : "bg-highlight shadow-glow-sm"
                     }`}
                   />
-                  <p className="text-sm font-medium text-slate-900">{notif.message}</p>
+                  <p className="text-sm font-medium text-text">{notif.message}</p>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-slate-400 pl-4">
+                <div className="flex items-center gap-3 text-xs text-muted pl-4">
                   <span className="capitalize">{notif.type.replace(/_/g, " ").toLowerCase()}</span>
                   <span>•</span>
                   <span className="flex items-center gap-1">
@@ -154,7 +154,7 @@ export default function NotificationsPage() {
                 <button
                   onClick={() => markAsRead(notif.id)}
                   title="Mark as read"
-                  className="rounded p-1 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
+                  className="rounded-lg p-1 text-muted hover:text-highlight hover:bg-highlight/10 transition-colors duration-200 motion-reduce:transition-none"
                 >
                   <Check className="h-4 w-4" />
                 </button>

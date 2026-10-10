@@ -208,19 +208,19 @@ export default function TaskDetailPage() {
   if (authLoading || loading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-r-transparent"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-r-transparent"></div>
       </div>
     );
   }
 
   if (error || !task) {
     return (
-      <div className="rounded-xl border border-rose-200 bg-rose-50 p-6 text-center">
-        <h3 className="text-base font-semibold text-rose-800">Error</h3>
-        <p className="mt-1 text-sm text-rose-600">{error || "Task not found"}</p>
+      <div className="rounded-xl border border-danger/30 bg-danger/10 p-6 text-center">
+        <h3 className="text-base font-semibold text-danger">Error</h3>
+        <p className="mt-1 text-sm text-danger">{error || "Task not found"}</p>
         <button
           onClick={() => router.back()}
-          className="mt-4 rounded-md bg-white px-4 py-2 text-sm font-semibold text-slate-700 border border-slate-200"
+          className="mt-4 rounded-lg bg-card px-4 py-2 text-sm font-semibold text-text border border-border"
         >
           Go Back
         </button>
@@ -233,15 +233,15 @@ export default function TaskDetailPage() {
       <div>
         <Link
           href={`/projects/${task.project_id}/tasks`}
-          className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-highlight hover:text-primary transition-colors duration-200 motion-reduce:transition-none"
         >
           <ArrowLeft className="h-3.5 w-3.5" /> Back to Project Tasks ({task.project_name})
         </Link>
         <div className="mt-2 flex items-center justify-between">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-bold tracking-tight text-text">
             Task Details & Concurrency Control
           </h1>
-          <span className="rounded bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700 border border-indigo-100">
+          <span className="rounded-lg bg-primary/15 px-2.5 py-1 text-xs font-bold text-highlight border border-primary/30">
             Version v{task.version}
           </span>
         </div>
@@ -250,10 +250,10 @@ export default function TaskDetailPage() {
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
         {/* Task Form Column */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
             <form onSubmit={handleUpdateTask} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase">
+                <label className="block text-xs font-semibold text-muted uppercase">
                   Title
                 </label>
                 <input
@@ -261,31 +261,31 @@ export default function TaskDetailPage() {
                   required
                   value={editTitle}
                   onChange={(e) => setEditTitle(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                  className="mt-1 block w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm text-text placeholder:text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/60"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase">
+                <label className="block text-xs font-semibold text-muted uppercase">
                   Description
                 </label>
                 <textarea
                   rows={4}
                   value={editDesc}
                   onChange={(e) => setEditDesc(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                  className="mt-1 block w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm text-text placeholder:text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/60"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase">
+                  <label className="block text-xs font-semibold text-muted uppercase">
                     Status
                   </label>
                   <select
                     value={editStatus}
                     onChange={(e) => setEditStatus(e.target.value as TaskDetail["status"])}
-                    className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                    className="mt-1 block w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/60"
                   >
                     <option value="TODO">To Do</option>
                     <option value="IN_PROGRESS">In Progress</option>
@@ -295,13 +295,13 @@ export default function TaskDetailPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 uppercase">
+                  <label className="block text-xs font-semibold text-muted uppercase">
                     Priority
                   </label>
                   <select
                     value={editPriority}
                     onChange={(e) => setEditPriority(e.target.value as TaskDetail["priority"])}
-                    className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                    className="mt-1 block w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/60"
                   >
                     <option value="LOW">Low</option>
                     <option value="MEDIUM">Medium</option>
@@ -315,7 +315,7 @@ export default function TaskDetailPage() {
                 <button
                   type="submit"
                   disabled={isSaving}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-text shadow-sm hover:bg-primary/90 hover:shadow-glow transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-highlight/60 disabled:opacity-50 motion-reduce:transition-none"
                 >
                   <Save className="h-4 w-4" />
                   {isSaving ? "Saving..." : "Save Changes"}
@@ -325,28 +325,28 @@ export default function TaskDetailPage() {
           </div>
 
           {/* Comments Section */}
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-indigo-600" />
+          <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
+            <h2 className="text-base font-bold text-text flex items-center gap-2">
+              <MessageSquare className="h-4 w-4 text-highlight" />
               Comments ({comments.length})
             </h2>
 
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-border">
               {comments.length === 0 ? (
-                <p className="py-4 text-xs text-slate-400 text-center">No comments posted yet.</p>
+                <p className="py-4 text-xs text-muted text-center">No comments posted yet.</p>
               ) : (
                 comments.map((c) => (
                   <div key={c.id} className="py-3 text-xs space-y-1">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-900">{c.user_name}</span>
+                      <span className="font-bold text-text">{c.user_name}</span>
                       <div className="flex items-center gap-2">
-                        <span className="text-slate-400">
+                        <span className="text-muted">
                           {new Date(c.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </span>
                         {(c.user_id === user?.id || user?.role === "ADMIN") && (
                           <button
                             onClick={() => handleDeleteComment(c.id)}
-                            className="text-slate-400 hover:text-rose-600"
+                            className="text-muted hover:text-danger"
                             title="Delete comment"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -354,7 +354,7 @@ export default function TaskDetailPage() {
                         )}
                       </div>
                     </div>
-                    <p className="text-slate-700">{c.content}</p>
+                    <p className="text-text">{c.content}</p>
                   </div>
                 ))
               )}
@@ -367,11 +367,11 @@ export default function TaskDetailPage() {
                 placeholder="Write a comment..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
-                className="flex-1 rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                className="flex-1 rounded-xl border border-border bg-bg px-3.5 py-2 text-sm text-text placeholder:text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/60"
               />
               <button
                 type="submit"
-                className="inline-flex items-center gap-1 rounded-md bg-indigo-600 px-3.5 py-2 text-sm font-semibold text-white hover:bg-indigo-700"
+                className="inline-flex items-center gap-1 rounded-lg bg-primary px-3.5 py-2 text-sm font-semibold text-text hover:bg-primary/90 hover:shadow-glow transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-highlight/60 motion-reduce:transition-none"
               >
                 <Send className="h-4 w-4" />
                 Post
@@ -382,37 +382,37 @@ export default function TaskDetailPage() {
 
         {/* Task Meta Sidebar */}
         <div className="space-y-4">
-          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 text-xs">
-            <h3 className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">
+          <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4 text-xs">
+            <h3 className="font-bold text-text uppercase tracking-wider text-[11px]">
               Task Meta Details
             </h3>
 
-            <div className="space-y-3 divide-y divide-slate-100">
+            <div className="space-y-3 divide-y divide-border">
               <div className="pt-2 flex justify-between">
-                <span className="text-slate-500">Project</span>
-                <span className="font-semibold text-slate-900">{task.project_name}</span>
+                <span className="text-muted">Project</span>
+                <span className="font-semibold text-text">{task.project_name}</span>
               </div>
               <div className="pt-2 flex justify-between">
-                <span className="text-slate-500">Assignee</span>
-                <span className="font-semibold text-slate-900">
+                <span className="text-muted">Assignee</span>
+                <span className="font-semibold text-text">
                   {task.assignee_name || "Unassigned"}
                 </span>
               </div>
               <div className="pt-2 flex justify-between">
-                <span className="text-slate-500">Created by</span>
-                <span className="font-semibold text-slate-900">{task.creator_name || "System"}</span>
+                <span className="text-muted">Created by</span>
+                <span className="font-semibold text-text">{task.creator_name || "System"}</span>
               </div>
               <div className="pt-2 flex justify-between">
-                <span className="text-slate-500">Optimistic Version</span>
-                <span className="font-mono font-bold text-indigo-600">v{task.version}</span>
+                <span className="text-muted">Optimistic Version</span>
+                <span className="font-mono font-bold text-highlight">v{task.version}</span>
               </div>
               <div className="pt-2 flex justify-between">
-                <span className="text-slate-500">Created at</span>
-                <span className="text-slate-600">{new Date(task.created_at).toLocaleString()}</span>
+                <span className="text-muted">Created at</span>
+                <span className="text-muted">{new Date(task.created_at).toLocaleString()}</span>
               </div>
               <div className="pt-2 flex justify-between">
-                <span className="text-slate-500">Last updated</span>
-                <span className="text-slate-600">{new Date(task.updated_at).toLocaleString()}</span>
+                <span className="text-muted">Last updated</span>
+                <span className="text-muted">{new Date(task.updated_at).toLocaleString()}</span>
               </div>
             </div>
           </div>
@@ -421,26 +421,26 @@ export default function TaskDetailPage() {
 
       {/* 409 Conflict Dialog */}
       {conflictModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg rounded-xl bg-white p-6 shadow-2xl border border-rose-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg/80 backdrop-blur-sm p-4">
+          <div className="w-full max-w-lg rounded-xl bg-card p-6 shadow-2xl border border-danger/30">
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-full bg-rose-100 text-rose-600">
+              <div className="p-2 rounded-full bg-danger/15 text-danger">
                 <AlertTriangle className="h-6 w-6" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-bold text-slate-900">
+                <h3 className="text-lg font-bold text-text">
                   Version Conflict (HTTP 409)
                 </h3>
-                <p className="mt-1 text-sm text-slate-600">
+                <p className="mt-1 text-sm text-muted">
                   {conflictModal.message}
                 </p>
               </div>
             </div>
 
             {conflictModal.latestTask && (
-              <div className="mt-4 rounded-lg bg-slate-50 p-4 border border-slate-200 text-xs space-y-2">
-                <p className="font-semibold text-slate-800">Fresh values from database:</p>
-                <div className="grid grid-cols-2 gap-2 text-slate-600">
+              <div className="mt-4 rounded-lg bg-bg p-4 border border-border text-xs space-y-2">
+                <p className="font-semibold text-text">Fresh values from database:</p>
+                <div className="grid grid-cols-2 gap-2 text-muted">
                   <div><strong>Title:</strong> {conflictModal.latestTask.title}</div>
                   <div><strong>Status:</strong> {conflictModal.latestTask.status}</div>
                   <div><strong>Priority:</strong> {conflictModal.latestTask.priority}</div>
@@ -456,7 +456,7 @@ export default function TaskDetailPage() {
                   setConflictModal(null);
                   fetchTaskAndComments();
                 }}
-                className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700"
+                className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-text shadow-sm hover:bg-primary/90 hover:shadow-glow transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-highlight/60 motion-reduce:transition-none"
               >
                 <RefreshCw className="h-4 w-4" />
                 Reload Latest Version

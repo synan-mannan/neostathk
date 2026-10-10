@@ -427,6 +427,18 @@ export async function updateTaskStatusHandler(req: Request, res: Response, next:
       }
 
       const updatedTask = updateRes.rows[0];
+      const namesRes = await client.query(
+        `SELECT
+          u_assignee.name AS assignee_name,
+          u_assignee.email AS assignee_email,
+          u_creator.name AS creator_name
+         FROM tasks t
+         LEFT JOIN users u_assignee ON t.assignee_id = u_assignee.id
+         LEFT JOIN users u_creator ON t.created_by = u_creator.id
+         WHERE t.id = $1`,
+        [id]
+      );
+      const enrichedTask = { ...updatedTask, ...namesRes.rows[0] };
 
       await logActivity(client, {
         userId: user.id,
@@ -526,6 +538,18 @@ export async function updateTaskAssigneeHandler(req: Request, res: Response, nex
       }
 
       const updatedTask = updateRes.rows[0];
+      const namesRes = await client.query(
+        `SELECT
+          u_assignee.name AS assignee_name,
+          u_assignee.email AS assignee_email,
+          u_creator.name AS creator_name
+         FROM tasks t
+         LEFT JOIN users u_assignee ON t.assignee_id = u_assignee.id
+         LEFT JOIN users u_creator ON t.created_by = u_creator.id
+         WHERE t.id = $1`,
+        [id]
+      );
+      const enrichedTask = { ...updatedTask, ...namesRes.rows[0] };
 
       await logActivity(client, {
         userId: user.id,
@@ -549,9 +573,9 @@ export async function updateTaskAssigneeHandler(req: Request, res: Response, nex
 
       await client.query('COMMIT');
 
-      emitToProject(ctx.task.project_id, 'task:assigned', updatedTask);
+      emitToProject(ctx.task.project_id, 'task:assigned', enrichedTask);
 
-      res.json({ success: true, task: updatedTask });
+      res.json({ success: true, task: enrichedTask });
     } catch (e) {
       await client.query('ROLLBACK');
       throw e;

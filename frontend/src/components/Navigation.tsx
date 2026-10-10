@@ -39,7 +39,7 @@ export function Navigation() {
       .then((res) => {
         if (res.success) setUnreadCount(res.unreadCount);
       })
-      .catch(() => {});
+      .catch(() => { });
 
     // Listen to real-time notification events & socket connection state
     const socket = getSocket();
@@ -86,14 +86,14 @@ export function Navigation() {
         <div className="flex items-center space-x-6 sm:space-x-8">
           <Link href="/dashboard" className="flex items-center space-x-2.5 group">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-white font-bold shadow-glow-sm transition-transform duration-200 group-hover:scale-105">
-              N
+              C
             </div>
             <div className="flex items-center gap-1.5">
               <span className="text-lg font-bold tracking-tight text-text">
-                NeoStats
+                Colab
               </span>
               <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-primary/20 text-highlight border border-primary/40 uppercase tracking-wider">
-                Collab
+                Project
               </span>
             </div>
           </Link>
@@ -137,7 +137,7 @@ export function Navigation() {
             <span
               className={cn(
                 "h-2 w-2 rounded-full transition-colors",
-                isConnected ? "bg-highlight shadow-[0_0_8px_#86EFAC]" : "bg-muted animate-pulse"
+                isConnected ? "bg-highlight shadow-glow-sm" : "bg-muted animate-pulse"
               )}
             />
             <span className="hidden sm:inline text-muted text-[10px]">

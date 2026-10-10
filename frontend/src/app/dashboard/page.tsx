@@ -233,7 +233,7 @@ export default function DashboardPage() {
               Live Activity
             </h2>
             <div className="flex items-center gap-1.5">
-              <span className="h-2 w-2 rounded-full bg-highlight shadow-[0_0_8px_#86EFAC] animate-pulse" />
+              <span className="h-2 w-2 rounded-full bg-highlight shadow-glow-sm animate-pulse" />
               <span className="text-[10px] text-muted uppercase tracking-wider">Live</span>
             </div>
           </div>

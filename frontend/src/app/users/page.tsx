@@ -101,7 +101,7 @@ export default function UsersAdminPage() {
   if (authLoading || loading) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-600 border-r-transparent"></div>
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-r-transparent"></div>
       </div>
     );
   }
@@ -110,27 +110,27 @@ export default function UsersAdminPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <Users className="h-6 w-6 text-indigo-600" />
+          <h1 className="text-2xl font-bold tracking-tight text-text flex items-center gap-2">
+            <Users className="h-6 w-6 text-highlight" />
             User Management (Admin Only)
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-muted">
             Create, update roles, and deactivate users system-wide.
           </p>
         </div>
 
         <button
           onClick={() => setShowCreateModal(true)}
-          className="inline-flex items-center gap-1.5 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-text shadow-sm hover:bg-primary/90 hover:shadow-glow transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-highlight/60 motion-reduce:transition-none"
         >
           <UserPlus className="h-4 w-4" />
           Create New User
         </button>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-x-auto">
-        <table className="min-w-full divide-y divide-slate-200 text-sm">
-          <thead className="bg-slate-50 text-xs font-semibold text-slate-500 uppercase">
+      <div className="rounded-xl border border-border bg-card shadow-sm overflow-x-auto">
+        <table className="min-w-full divide-y divide-border text-sm">
+          <thead className="bg-border/25 text-xs font-semibold text-muted uppercase">
             <tr>
               <th className="px-6 py-3 text-left">User</th>
               <th className="px-6 py-3 text-left">Role</th>
@@ -139,13 +139,13 @@ export default function UsersAdminPage() {
               <th className="px-6 py-3 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200">
+          <tbody className="divide-y divide-border">
             {usersList.map((u) => (
-              <tr key={u.id} className="hover:bg-slate-50/50">
+              <tr key={u.id} className="hover:bg-border/20">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div>
-                    <span className="font-semibold text-slate-900 block">{u.name}</span>
-                    <span className="text-xs text-slate-500">{u.email}</span>
+                    <span className="font-semibold text-text block">{u.name}</span>
+                    <span className="text-xs text-muted">{u.email}</span>
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -153,7 +153,7 @@ export default function UsersAdminPage() {
                     disabled={u.id === user?.id}
                     value={u.role}
                     onChange={(e) => handleRoleChange(u.id, e.target.value as AdminUser["role"])}
-                    className="rounded border border-slate-300 bg-white px-2 py-1 text-xs font-medium text-slate-700 disabled:opacity-50"
+                    className="rounded-lg border border-border bg-bg px-2 py-1 text-xs font-medium text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/60 disabled:opacity-50"
                   >
                     <option value="ADMIN">ADMIN</option>
                     <option value="PROJECT_MANAGER">PROJECT_MANAGER</option>
@@ -165,21 +165,21 @@ export default function UsersAdminPage() {
                   <span
                     className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-semibold ${
                       u.is_active
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-rose-50 text-rose-700"
+                        ? "bg-primary/15 text-highlight"
+                        : "bg-danger/10 text-danger"
                     }`}
                   >
                     {u.is_active ? "Active" : "Deactivated"}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-xs text-slate-500">
+                <td className="px-6 py-4 whitespace-nowrap text-xs text-muted">
                   {new Date(u.created_at).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right">
                   {u.is_active && u.id !== user?.id && (
                     <button
                       onClick={() => handleDeactivate(u.id)}
-                      className="text-xs font-semibold text-rose-600 hover:text-rose-800"
+                      className="text-xs font-semibold text-danger hover:text-danger/80"
                     >
                       Deactivate
                     </button>
@@ -193,18 +193,18 @@ export default function UsersAdminPage() {
 
       {/* Create User Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl border border-slate-200">
-            <h3 className="text-lg font-bold text-slate-900">Create System User</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-bg/80 backdrop-blur-sm p-4">
+          <div className="w-full max-w-md rounded-xl bg-card p-6 shadow-xl border border-border">
+            <h3 className="text-lg font-bold text-text">Create System User</h3>
             {error && (
-              <div className="mt-2 rounded bg-rose-50 p-2 text-xs text-rose-700 border border-rose-200">
+              <div className="mt-2 rounded-lg bg-danger/10 p-2 text-xs text-danger border border-danger/30">
                 {error}
               </div>
             )}
 
             <form onSubmit={handleCreateUser} className="mt-4 space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase">
+                <label className="block text-xs font-semibold text-muted uppercase">
                   Full Name
                 </label>
                 <input
@@ -213,12 +213,12 @@ export default function UsersAdminPage() {
                   placeholder="e.g. John Doe"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                  className="mt-1 block w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm text-text placeholder:text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/60"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase">
+                <label className="block text-xs font-semibold text-muted uppercase">
                   Email Address
                 </label>
                 <input
@@ -227,12 +227,12 @@ export default function UsersAdminPage() {
                   placeholder="e.g. john@neostats.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                  className="mt-1 block w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm text-text placeholder:text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/60"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase">
+                <label className="block text-xs font-semibold text-muted uppercase">
                   Password
                 </label>
                 <input
@@ -241,18 +241,18 @@ export default function UsersAdminPage() {
                   placeholder="At least 6 characters..."
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="mt-1 block w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                  className="mt-1 block w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm text-text placeholder:text-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/60"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 uppercase">
+                <label className="block text-xs font-semibold text-muted uppercase">
                   Global Role
                 </label>
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as AdminUser["role"])}
-                  className="mt-1 block w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                  className="mt-1 block w-full rounded-xl border border-border bg-bg px-3.5 py-2 text-sm text-text focus:outline-none focus-visible:ring-2 focus-visible:ring-highlight/60"
                 >
                   <option value="ADMIN">ADMIN</option>
                   <option value="PROJECT_MANAGER">PROJECT_MANAGER</option>
@@ -265,13 +265,13 @@ export default function UsersAdminPage() {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="rounded-md border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                  className="rounded-lg border border-border px-4 py-2 text-sm font-medium text-text hover:bg-border/40 transition-colors duration-200 motion-reduce:transition-none"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 shadow-sm"
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-text hover:bg-primary/90 hover:shadow-glow shadow-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-highlight/60 motion-reduce:transition-none"
                 >
                   Create User
                 </button>

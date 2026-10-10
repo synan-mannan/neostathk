@@ -61,6 +61,8 @@ export default function ProjectTasksPage() {
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
+  const [savingAssignments, setSavingAssignments] = useState<Set<string>>(new Set());
+  const [assignmentErrors, setAssignmentErrors] = useState<Record<string, string>>({});
   const [currentUserRole, setCurrentUserRole] = useState<string>("VIEWER");
   const [loading, setLoading] = useState(true);
 
@@ -153,13 +155,9 @@ export default function ProjectTasksPage() {
         setTasks((prev) =>
           prev.map((t) =>
             t.id === updatedTask.id
-              ? {
-                  ...t,
-                  assignee_id: updatedTask.assignee_id,
-                  assignee_name: updatedTask.assignee_name,
-                  version: updatedTask.version,
-                  isNew: true,
-                }
+              ? t.version <= updatedTask.version
+                ? { ...t, ...updatedTask, isNew: true }
+                : t
               : t
           )
         );
@@ -236,6 +234,67 @@ export default function ProjectTasksPage() {
       } else {
         alert(err.message || "Failed to update status");
       }
+    }
+  };
+
+  const handleAssigneeChange = async (task: Task, assigneeId: string) => {
+    const assignee = members.find((member) => member.id === assigneeId);
+    const nextAssigneeId = assigneeId || null;
+    const optimisticTask: Task = {
+      ...task,
+      assignee_id: nextAssigneeId,
+      assignee_name: assignee?.name ?? null,
+    };
+
+    setAssignmentErrors((prev) => {
+      const next = { ...prev };
+      delete next[task.id];
+      return next;
+    });
+    setTasks((prev) => prev.map((item) => (item.id === task.id ? optimisticTask : item)));
+    setSavingAssignments((prev) => new Set(prev).add(task.id));
+
+    try {
+      const res = await apiFetch<{ success: boolean; task: Task }>(
+        `api/tasks/${task.id}/assignee`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            assignee_id: nextAssigneeId,
+            version: task.version,
+          }),
+        }
+      );
+
+      if (res.success) {
+        setTasks((prev) =>
+          prev.map((item) =>
+            item.id === task.id && item.version <= res.task.version
+              ? { ...item, ...res.task }
+              : item
+          )
+        );
+      }
+    } catch (err: unknown) {
+      setTasks((prev) =>
+        prev.map((item) =>
+          item.id === task.id &&
+          item.version === task.version &&
+          item.assignee_id === nextAssigneeId
+            ? task
+            : item
+        )
+      );
+      setAssignmentErrors((prev) => ({
+        ...prev,
+        [task.id]: err instanceof Error ? err.message : "Failed to update assignee",
+      }));
+    } finally {
+      setSavingAssignments((prev) => {
+        const next = new Set(prev);
+        next.delete(task.id);
+        return next;
+      });
     }
   };
 
@@ -377,6 +436,23 @@ export default function ProjectTasksPage() {
                       <UserIcon className="h-3.5 w-3.5 text-highlight/70" />
                       {task.assignee_name ? `Assigned: ${task.assignee_name}` : "Unassigned"}
                     </span>
+                    {canManageTasks && (
+                      <Select
+                        aria-label={`Assign task: ${task.title}`}
+                        value={task.assignee_id || ""}
+                        disabled={savingAssignments.has(task.id)}
+                        onChange={(e) => handleAssigneeChange(task, e.target.value)}
+                        className="w-auto min-w-32 rounded-lg py-1 text-xs"
+                      >
+                        <option value="">Unassigned</option>
+                        {members.map((member) => (
+                          <option key={member.id} value={member.id}>
+                            {member.id === task.assignee_id ? "Assigned: " : "Assign: "}
+                            {member.name}
+                          </option>
+                        ))}
+                      </Select>
+                    )}
                     <span className="flex items-center gap-1">
                       <Clock className="h-3.5 w-3.5 text-muted" />
                       {new Date(task.updated_at).toLocaleDateString()}
@@ -388,6 +464,11 @@ export default function ProjectTasksPage() {
                       <MessageSquare className="h-3.5 w-3.5" /> Comments & Details
                     </Link>
                   </div>
+                  {assignmentErrors[task.id] && (
+                    <p role="alert" className="text-xs text-danger">
+                      {assignmentErrors[task.id]}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2.5 shrink-0">
