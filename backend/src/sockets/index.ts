@@ -61,7 +61,7 @@ export function initSocketIO(server: HttpServer): Server {
 
   io.on('connection', (socket: Socket) => {
     const user = (socket as any).user;
-    console.log(`🔌 Socket connected: ${user.name} (${user.id})`);
+    console.log(` Socket connected: ${user.name} (${user.id})`);
 
     // Join personal user room for private notifications
     socket.join(`user:${user.id}`);
@@ -88,7 +88,7 @@ export function initSocketIO(server: HttpServer): Server {
           socket.join(`project:${projectId}`);
           if (callback) callback({ success: true, room: `project:${projectId}` });
         } else {
-          console.warn(`⚠️ User ${user.email} denied subscription to unauthorized project room ${projectId}`);
+          console.warn(` User ${user.email} denied subscription to unauthorized project room ${projectId}`);
           if (callback) callback({ success: false, message: 'Unauthorized project subscription' });
         }
       } catch (err) {
@@ -102,7 +102,7 @@ export function initSocketIO(server: HttpServer): Server {
     });
 
     socket.on('disconnect', () => {
-      console.log(`🔌 Socket disconnected: ${user.name}`);
+      console.log(` Socket disconnected: ${user.name}`);
     });
   });
 

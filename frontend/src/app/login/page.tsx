@@ -2,10 +2,14 @@
 
 import React, { useState } from "react";
 import { useAuth } from "@/lib/auth";
-import { LogIn, ShieldAlert, CheckCircle2 } from "lucide-react";
+import { LogIn, UserPlus, ShieldAlert, CheckCircle2 } from "lucide-react";
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, register } = useAuth();
+  const [mode, setMode] = useState<"login" | "register">("login");
+
+  // Form states
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -17,15 +21,25 @@ export default function LoginPage() {
     setIsSubmitting(true);
 
     try {
-      await login(email, password);
+      if (mode === "login") {
+        await login(email, password);
+      } else {
+        await register(name, email, password);
+      }
     } catch (err: any) {
-      setError(err?.message || "Invalid credentials. Please verify your email and password.");
+      setError(
+        err?.message ||
+          (mode === "login"
+            ? "Invalid credentials. Please verify your email and password."
+            : "Registration failed. Please check your details and try again.")
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const fillQuickAccount = (demoEmail: string) => {
+    setMode("login");
     setEmail(demoEmail);
     setPassword("Password123!");
     setError(null);
@@ -38,15 +52,49 @@ export default function LoginPage() {
           N
         </div>
         <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-slate-900">
-          Sign in to NeoStats
+          {mode === "login" ? "Sign in to NeoStats" : "Create your Account"}
         </h2>
         <p className="mt-2 text-sm text-slate-600">
-          Collaborative Project Management Platform
+          {mode === "login"
+            ? "Collaborative Project Management Platform"
+            : "Sign up to join. New accounts receive Viewer access until an Admin assigns a role."}
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="rounded-xl border border-slate-200 bg-white py-8 px-6 shadow-sm sm:px-10">
+          {/* Mode Switch Tabs */}
+          <div className="mb-6 flex rounded-lg bg-slate-100 p-1">
+            <button
+              type="button"
+              onClick={() => {
+                setMode("login");
+                setError(null);
+              }}
+              className={`flex-1 rounded-md py-1.5 text-xs font-semibold transition-all ${
+                mode === "login"
+                  ? "bg-white text-indigo-700 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMode("register");
+                setError(null);
+              }}
+              className={`flex-1 rounded-md py-1.5 text-xs font-semibold transition-all ${
+                mode === "register"
+                  ? "bg-white text-indigo-700 shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              Register New User
+            </button>
+          </div>
+
           {error && (
             <div className="mb-6 rounded-lg bg-rose-50 p-4 border border-rose-200 flex items-start gap-3">
               <ShieldAlert className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
@@ -54,7 +102,23 @@ export default function LoginPage() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {mode === "register" && (
+              <div>
+                <label className="block text-sm font-medium text-slate-700">Full Name</label>
+                <div className="mt-1">
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Alex Johnson"
+                    className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  />
+                </div>
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-medium text-slate-700">Email address</label>
               <div className="mt-1">
@@ -63,7 +127,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="e.g. admin@neostats.com"
+                  placeholder="e.g. alex@neostats.com"
                   className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
@@ -77,7 +141,7 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
+                  placeholder={mode === "register" ? "At least 6 characters..." : "••••••••••••"}
                   className="block w-full rounded-md border border-slate-300 px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
@@ -86,23 +150,28 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex w-full items-center justify-center gap-2 rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 transition-colors"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50 transition-colors"
             >
               {isSubmitting ? (
                 <>
                   <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-r-transparent"></div>
-                  <span>Signing in...</span>
+                  <span>{mode === "login" ? "Signing in..." : "Registering..."}</span>
                 </>
-              ) : (
+              ) : mode === "login" ? (
                 <>
                   <LogIn className="h-4 w-4" />
                   <span>Sign in</span>
+                </>
+              ) : (
+                <>
+                  <UserPlus className="h-4 w-4" />
+                  <span>Register & Sign In</span>
                 </>
               )}
             </button>
           </form>
 
-          {/* Demo Credentials Quick-Switch */}
+          {/* Demo Credentials Quick-Switch (visible in login mode) */}
           <div className="mt-8 border-t border-slate-200 pt-6">
             <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500">
               Quick Test Accounts (Click to Fill):

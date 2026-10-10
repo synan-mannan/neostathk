@@ -3,7 +3,7 @@ import { authenticate } from '../middleware/authenticate.js';
 import { requireGlobalRoles } from '../middleware/authorize.js';
 
 // Controllers
-import { loginHandler, logoutHandler, meHandler } from '../controllers/auth.controller.js';
+import { loginHandler, registerHandler, logoutHandler, meHandler } from '../controllers/auth.controller.js';
 import {
   listUsersHandler,
   getUserHandler,
@@ -49,6 +49,7 @@ const router = Router();
 
 // 1. Authentication Endpoints
 router.post('/auth/login', loginHandler);
+router.post('/auth/register', registerHandler);
 router.post('/auth/logout', logoutHandler);
 router.get('/auth/me', authenticate, meHandler);
 
